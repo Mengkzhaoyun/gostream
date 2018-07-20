@@ -1,0 +1,14 @@
+# vscode
+.vscode/
+*.log
+
+# nodejs
+node_modules/
+
+# build
+.tools/
+.tmp/
+dist/
+
+# go
+debug
