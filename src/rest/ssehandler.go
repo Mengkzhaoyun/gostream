@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/Mengkzhaoyun/gostream/src/model"
 	restful "github.com/emicklei/go-restful"
@@ -39,22 +40,36 @@ func NewSSEHandler(prefix string) (http.Handler, error) {
 
 	apiWs := new(restful.WebService)
 
-	apiWs.Path(fmt.Sprintf("%s%s", prefix, "sse")).
-		Consumes(restful.MIME_JSON).
-		Produces(restful.MIME_JSON)
+	apiWs.Path(prefix).
+		Consumes(restful.MIME_JSON, "text/event-stream").
+		Produces(restful.MIME_JSON, "text/event-stream")
 	wsContainer.Add(apiWs)
 
-	tags := []string{fmt.Sprintf("%s%s", prefix, "sse")}
+	apiTags := []string{strings.TrimSuffix(prefix, "/")}
+
+	apiWs.Route(apiWs.GET("/").To(handler.test).
+		// docs
+		Doc("get a sample event message").
+		Metadata(restfulspec.KeyOpenAPITags, apiTags).
+		Writes(model.EventMessage{}).
+		Returns(200, "OK", model.EventMessage{}))
+
+	apiWs.Route(apiWs.GET("/test").To(handler.test).
+		// docs
+		Doc("get a sample event message").
+		Metadata(restfulspec.KeyOpenAPITags, apiTags).
+		Writes(model.EventMessage{}).
+		Returns(200, "OK", model.EventMessage{}))
 
 	apiWs.Route(apiWs.GET("/stream").To(handler.stream).
 		// docs
 		Doc("get a event stream").
-		Metadata(restfulspec.KeyOpenAPITags, tags))
+		Metadata(restfulspec.KeyOpenAPITags, apiTags))
 
 	apiWs.Route(apiWs.POST("/event").To(handler.event).
 		// docs
 		Doc("post event message to server").
-		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Metadata(restfulspec.KeyOpenAPITags, apiTags).
 		Reads(model.EventMessage{})) // from the request
 
 	return wsContainer, nil
@@ -142,10 +157,23 @@ func (handler *SSEHandler) listen() {
 
 			// We got a new event from the outside!
 			// Send event to all connected clients
-			for client, _ := range handler.clients {
+			for client := range handler.clients {
 				client.Message <- event
 			}
 		}
 	}
 
+}
+
+// POST http://localhost/{prefix}/sse/event
+//
+func (handler SSEHandler) test(request *restful.Request, response *restful.Response) {
+	msg := &model.EventMessage{
+		ID: "12po85ss",
+		Labels: map[string]string{
+			"user":    "shucheng@spacesystech.com",
+			"channel": "drone",
+		},
+	}
+	response.WriteEntity(msg)
 }

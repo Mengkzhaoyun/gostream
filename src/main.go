@@ -47,7 +47,7 @@ func server(c *cli.Context) error {
 
 	// /sse
 	sseURL := fmt.Sprintf("%s%s", c.String("prefix"), "/sse/")
-	sseHandler, _ := rest.NewAdminHandler(sseURL)
+	sseHandler, _ := rest.NewSSEHandler(sseURL)
 	http.Handle(sseURL, sseHandler)
 
 	log.Printf("Using HTTP port: %d", c.Int("port"))
