@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/Mengkzhaoyun/gostream/src/rest"
+	"github.com/Mengkzhaoyun/gostream/src/version"
+
 	"github.com/urfave/cli"
-	"gitlab.ispacesys.cn/cig/gooracle/src/rest"
-	"gitlab.ispacesys.cn/shucheng/gostream/src/version"
 )
 
 var flags = []cli.Flag{

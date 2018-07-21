@@ -16,22 +16,22 @@ type SSEHandler struct {
 	Notifier chan model.EventMessage
 
 	// New client connections
-	newClients chan chan []model.EventClient
+	newClients chan model.EventClient
 
 	// Closed client connections
-	closingClients chan chan []model.EventClient
+	closingClients chan model.EventClient
 
 	// Client connections registry
-	clients map[chan []model.EventClient]bool
+	clients map[*model.EventClient]bool
 }
 
 // NewSSEHandler , Create Users Handler
 func NewSSEHandler(prefix string) (http.Handler, error) {
 	handler := &SSEHandler{
 		Notifier:       make(chan model.EventMessage),
-		newClients:     make(chan chan []model.EventClient),
-		closingClients: make(chan chan []model.EventClient),
-		clients:        make(map[chan []model.EventClient]bool),
+		newClients:     make(chan model.EventClient),
+		closingClients: make(chan model.EventClient),
+		clients:        make(map[*model.EventClient]bool),
 	}
 
 	wsContainer := restful.NewContainer()
@@ -77,15 +77,18 @@ func (handler SSEHandler) stream(request *restful.Request, response *restful.Res
 	rw.Header().Set("Access-Control-Allow-Origin", "*")
 
 	// Each connection registers its own message channel with the Broker's connections registry
-	messageChan := make(chan model.EventMessage)
+	messageClient := model.EventClient{
+		ID:      "mengkzhaoyun@gmail.com",
+		Message: make(chan model.EventMessage),
+	}
 
 	// Signal the broker that we have a new connection
-	handler.newClients <- messageChan
+	handler.newClients <- messageClient
 
 	// Remove this client from the map of connected clients
 	// when this handler exits.
 	defer func() {
-		broker.closingClients <- messageChan
+		handler.closingClients <- messageClient
 	}()
 
 	// Listen to connection close and un-register messageChan
@@ -93,14 +96,14 @@ func (handler SSEHandler) stream(request *restful.Request, response *restful.Res
 
 	go func() {
 		<-notify
-		broker.closingClients <- messageChan
+		handler.closingClients <- messageClient
 	}()
 
 	for {
 
 		// Write to the ResponseWriter
 		// Server Sent Events compatible
-		fmt.Fprintf(rw, "data: %s\n\n", <-messageChan)
+		fmt.Fprintf(rw, "data: %s\n\n", <-messageClient.Message)
 
 		// Flush the data immediatly instead of buffering it for later.
 		flusher.Flush()
@@ -113,6 +116,7 @@ func (handler SSEHandler) event(request *restful.Request, response *restful.Resp
 	msg := new(model.EventMessage)
 	err := request.ReadEntity(&msg)
 	if err == nil {
+		handler.Notifier <- *msg
 		response.WriteEntity("success")
 	} else {
 		response.WriteError(http.StatusInternalServerError, err)
@@ -126,20 +130,20 @@ func (handler *SSEHandler) listen() {
 
 			// A new client has connected.
 			// Register their message channel
-			handler.clients[s] = true
+			handler.clients[&s] = true
 			log.Printf("Client added. %d registered clients", len(handler.clients))
 		case s := <-handler.closingClients:
 
 			// A client has dettached and we want to
 			// stop sending them messages.
-			delete(handler.clients, s)
+			delete(handler.clients, &s)
 			log.Printf("Removed client. %d registered clients", len(handler.clients))
 		case event := <-handler.Notifier:
 
 			// We got a new event from the outside!
 			// Send event to all connected clients
 			for client, _ := range handler.clients {
-				client.Channel <- event
+				client.Message <- event
 			}
 		}
 	}

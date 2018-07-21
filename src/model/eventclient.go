@@ -8,5 +8,6 @@ type EventClient struct {
 	// Labels represents the key-value pairs the entry is lebeled with.
 	Labels map[string]string `json:"labels,omitempty"`
 
-	Channel chan EventMessage
+	// Message
+	Message chan EventMessage
 }
