@@ -15,8 +15,9 @@
       "program": "${workspaceRoot}\\src\\main.go",
       "env": {},
       "args": [
-        "--port=8090",
-        "--prefix=/gostream"
+        "--debug=true",
+        "--server-port=8090",
+        "--server-prefix=/gostream"
       ],
       "showLog": true
     }
