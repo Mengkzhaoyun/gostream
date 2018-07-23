@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Mengkzhaoyun/gostream/src/conf"
-	"github.com/Mengkzhaoyun/gostream/src/router/middleware/header"
-	"github.com/Mengkzhaoyun/gostream/src/server"
+	"github.com/mengkzhaoyun/gostream/src/conf"
+	"github.com/mengkzhaoyun/gostream/src/router/middleware/header"
+	"github.com/mengkzhaoyun/gostream/src/server"
 
 	"github.com/gin-gonic/gin"
 )
@@ -46,8 +46,8 @@ func Load(middleware ...gin.HandlerFunc) http.Handler {
 		msg.POST("/events", server.EventStreamMSG)
 	}
 
-	e.GET("/version", server.Version)
-	e.GET("/healthz", server.Health)
+	e.GET(fmt.Sprintf("%s%s", conf.Services.Prefix, "/version"), server.Version)
+	e.GET(fmt.Sprintf("%s%s", conf.Services.Prefix, "/healthz"), server.Health)
 
 	return e
 }

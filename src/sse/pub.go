@@ -17,11 +17,13 @@ type publisher struct {
 	topics map[string]*topic
 }
 
-// New creates an in-memory publisher.
+// NewPubsub creates an in-memory publisher.
 func NewPubsub() pubsub.Publisher {
-	return &publisher{
+	p := &publisher{
 		topics: make(map[string]*topic),
 	}
+
+	return p
 }
 
 func (p *publisher) Create(c context.Context, dest string) error {
@@ -40,7 +42,8 @@ func (p *publisher) Publish(c context.Context, dest string, message pubsub.Messa
 	t, ok := p.topics[dest]
 	p.Unlock()
 	if !ok {
-		return pubsub.ErrNotFound
+		t = newTopic(dest)
+		p.topics[dest] = t
 	}
 	t.publish(message)
 	return nil
@@ -51,7 +54,8 @@ func (p *publisher) Subscribe(c context.Context, dest string, receiver pubsub.Re
 	t, ok := p.topics[dest]
 	p.Unlock()
 	if !ok {
-		return pubsub.ErrNotFound
+		t = newTopic(dest)
+		p.topics[dest] = t
 	}
 	s := &subscriber{
 		receiver: receiver,

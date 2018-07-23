@@ -18,7 +18,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Mengkzhaoyun/gostream/src/version"
+	"github.com/mengkzhaoyun/gostream/src/version"
 
 	"github.com/gin-gonic/gin"
 )

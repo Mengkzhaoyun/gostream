@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/Mengkzhaoyun/gostream/src/version"
+	"github.com/mengkzhaoyun/gostream/src/version"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,7 +13,7 @@ func Health(c *gin.Context) {
 // Version endpoint returns the server version and build information.
 func Version(c *gin.Context) {
 	c.JSON(200, gin.H{
-		"source":  "https://github.com/Mengkzhaoyun/gostream",
+		"source":  "https://github.com/mengkzhaoyun/gostream",
 		"version": version.Version.String(),
 	})
 }

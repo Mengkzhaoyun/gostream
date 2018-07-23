@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Mengkzhaoyun/gostream/src/conf"
+	"github.com/mengkzhaoyun/gostream/src/conf"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/cncd/pubsub"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 // EventStreamSSE , Event

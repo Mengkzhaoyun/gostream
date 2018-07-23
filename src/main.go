@@ -2,19 +2,18 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/Mengkzhaoyun/gostream/src/conf"
-	"github.com/Mengkzhaoyun/gostream/src/router"
-	"github.com/Mengkzhaoyun/gostream/src/router/middleware"
-	"github.com/Mengkzhaoyun/gostream/src/sse"
-	"github.com/Mengkzhaoyun/gostream/src/version"
+	"github.com/mengkzhaoyun/gostream/src/conf"
+	"github.com/mengkzhaoyun/gostream/src/router"
+	"github.com/mengkzhaoyun/gostream/src/router/middleware"
+	"github.com/mengkzhaoyun/gostream/src/sse"
+	"github.com/mengkzhaoyun/gostream/src/version"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/contrib/ginrus"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 
@@ -53,12 +52,8 @@ func main() {
 }
 
 func server(c *cli.Context) error {
-	if len(c.String("prefix")) > 0 {
-		log.Printf("Using HTTP prefix: %s", c.String("prefix"))
-	}
-
 	conf.Services.Pubsub = sse.NewPubsub()
-	conf.Services.Prefix = c.String("prefix")
+	conf.Services.Prefix = c.String("server-prefix")
 
 	handler := router.Load(
 		ginrus.Ginrus(logrus.StandardLogger(), time.RFC3339, true),
