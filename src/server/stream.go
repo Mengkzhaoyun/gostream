@@ -10,7 +10,6 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/cncd/pubsub"
-
 	"github.com/gin-gonic/gin"
 )
 

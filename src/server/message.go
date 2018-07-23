@@ -22,7 +22,7 @@ func EventStreamMSG(c *gin.Context) {
 		Labels: in.Labels,
 	}
 
-	conf.Services.Pubsub.Publish(c, "topic/events", msg)
+	conf.Services.Pubsub.Publish(c, "topic/events", *msg)
 
 	c.String(200, "Message Publish to topic/evnets : %s", msg.ID)
 }

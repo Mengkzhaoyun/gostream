@@ -8,15 +8,13 @@ import (
 	"time"
 
 	"github.com/Mengkzhaoyun/gostream/src/conf"
-
 	"github.com/Mengkzhaoyun/gostream/src/router"
 	"github.com/Mengkzhaoyun/gostream/src/router/middleware"
+	"github.com/Mengkzhaoyun/gostream/src/sse"
+	"github.com/Mengkzhaoyun/gostream/src/version"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/contrib/ginrus"
-
-	"github.com/Mengkzhaoyun/gostream/src/sse"
-
-	"github.com/Mengkzhaoyun/gostream/src/version"
 	"github.com/urfave/cli"
 )
 
