@@ -43,7 +43,7 @@ func Load(middleware ...gin.HandlerFunc) http.Handler {
 
 	msg := e.Group(fmt.Sprintf("%s%s", conf.Services.Prefix, "/message"))
 	{
-		msg.POST("/events", server.EventStreamMessage)
+		msg.POST("/events", server.EventStreamMSG)
 	}
 
 	e.GET("/version", server.Version)
