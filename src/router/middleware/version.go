@@ -15,12 +15,12 @@
 package middleware
 
 import (
-	"github.com/mengkzhaoyun/gostream/src/version"
 	"github.com/gin-gonic/gin"
+	"github.com/mengkzhaoyun/gostream/src/version"
 )
 
 // Version is a middleware function that appends the Drone version information
 // to the HTTP response. This is intended for debugging and troubleshooting.
 func Version(c *gin.Context) {
-	c.Header("X-DRONE-VERSION", version.Version.String())
+	c.Header("X-GOSTREAM-VERSION", version.Version.String())
 }
