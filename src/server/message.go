@@ -1,12 +1,10 @@
 package server
 
 import (
-	"encoding/base64"
 	"net/http"
 
 	"github.com/satori/go.uuid"
 
-	"github.com/cncd/pubsub"
 	"github.com/gin-gonic/gin"
 
 	"github.com/mengkzhaoyun/gostream/src/conf"
@@ -21,15 +19,9 @@ func EventStreamMSG(c *gin.Context) {
 		return
 	}
 
-	decodeBytes, err := base64.StdEncoding.DecodeString(in.Data)
-	if err != nil {
-		c.String(http.StatusBadRequest, "Error parsing message data. %s", err)
-		return
-	}
-
-	msg := &pubsub.Message{
+	msg := &model.EventMessage{
 		ID:     uuid.Must(uuid.NewV4()).String(),
-		Data:   decodeBytes,
+		Data:   in.Data,
 		Labels: in.Labels,
 	}
 

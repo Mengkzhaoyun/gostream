@@ -2,61 +2,69 @@ package sse
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"strings"
 	"sync"
 
-	"github.com/cncd/pubsub"
+	"github.com/go-redis/redis"
+	"github.com/mengkzhaoyun/gostream/src/model"
 )
 
+// Receiver ,
+type Receiver func(model.EventMessage)
+
 type subscriber struct {
-	receiver pubsub.Receiver
+	receiver Receiver
 }
 
-type publisher struct {
+// Publisher ,
+type Publisher struct {
 	sync.Mutex
-
+	redis  *redis.Client
 	topics map[string]*topic
 }
 
 // NewPubsub creates an in-memory publisher.
-func NewPubsub() pubsub.Publisher {
-	p := &publisher{
+func NewPubsub(url string) Publisher {
+	p := &Publisher{
 		topics: make(map[string]*topic),
 	}
 
-	return p
+	addr := url
+	if strings.HasPrefix(url, "redis://") {
+		addr = strings.TrimPrefix(url, "redis://")
+	}
+	p.redis = redis.NewClient(&redis.Options{
+		Addr:     addr,
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+	pong, err := p.redis.Ping().Result()
+	fmt.Println(pong, err)
+
+	return *p
 }
 
-func (p *publisher) Create(c context.Context, dest string) error {
+// Publish ,
+func (p *Publisher) Publish(c context.Context, dest string, message model.EventMessage) error {
+	msgByte, err := json.Marshal(message)
+	err = p.redis.Publish(dest, string(msgByte)).Err()
+	return err
+}
+
+// Subscribe ,
+func (p *Publisher) Subscribe(c context.Context, dest string, receiver Receiver) error {
 	p.Lock()
 	t, ok := p.topics[dest]
 	if !ok {
-		t = newTopic(dest)
+		pubsub := p.redis.Subscribe(dest)
+		msgC := pubsub.Channel()
+		t = newTopic(dest, msgC)
 		p.topics[dest] = t
 	}
 	p.Unlock()
-	return nil
-}
 
-func (p *publisher) Publish(c context.Context, dest string, message pubsub.Message) error {
-	p.Lock()
-	t, ok := p.topics[dest]
-	p.Unlock()
-	if !ok {
-		t = newTopic(dest)
-		p.topics[dest] = t
-	}
-	t.publish(message)
-	return nil
-}
-
-func (p *publisher) Subscribe(c context.Context, dest string, receiver pubsub.Receiver) error {
-	p.Lock()
-	t, ok := p.topics[dest]
-	p.Unlock()
-	if !ok {
-		t = newTopic(dest)
-		p.topics[dest] = t
-	}
 	s := &subscriber{
 		receiver: receiver,
 	}
@@ -64,18 +72,7 @@ func (p *publisher) Subscribe(c context.Context, dest string, receiver pubsub.Re
 	select {
 	case <-c.Done():
 	case <-t.done:
+		t.unsubscribe(s)
 	}
-	t.unsubscribe(s)
-	return nil
-}
-
-func (p *publisher) Remove(c context.Context, dest string) error {
-	p.Lock()
-	t, ok := p.topics[dest]
-	if ok {
-		delete(p.topics, dest)
-		t.close()
-	}
-	p.Unlock()
 	return nil
 }

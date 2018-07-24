@@ -2,13 +2,14 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
 
 	"github.com/mengkzhaoyun/gostream/src/conf"
+	"github.com/mengkzhaoyun/gostream/src/model"
 
-	"github.com/cncd/pubsub"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -34,7 +35,7 @@ func EventStreamSSE(c *gin.Context) {
 
 	logrus.Debugf("user feed: connection opened")
 
-	eventc := make(chan []byte, 10)
+	eventc := make(chan string)
 	ctx, cancel := context.WithCancel(
 		context.Background(),
 	)
@@ -47,7 +48,7 @@ func EventStreamSSE(c *gin.Context) {
 
 	go func() {
 		// TODO remove this from global config
-		conf.Services.Pubsub.Subscribe(c, "topic/events", func(m pubsub.Message) {
+		conf.Services.Pubsub.Subscribe(c, "topic/events", func(m model.EventMessage) {
 			select {
 			case <-ctx.Done():
 				return
@@ -68,9 +69,10 @@ func EventStreamSSE(c *gin.Context) {
 			io.WriteString(rw, ": ping\n\n")
 			flusher.Flush()
 		case buf, ok := <-eventc:
+			fmt.Println("buf, ok := <-eventc:")
 			if ok {
 				io.WriteString(rw, "data: ")
-				rw.Write(buf)
+				rw.WriteString(buf)
 				io.WriteString(rw, "\n\n")
 				flusher.Flush()
 			}

@@ -34,6 +34,11 @@ var flags = []cli.Flag{
 		Name:   "server-prefix",
 		Usage:  "http server prefix (/sse)",
 	},
+	cli.StringFlag{
+		EnvVar: "GOSTREAM_REDIS_URL",
+		Name:   "redis-url",
+		Usage:  "redis url (/sse)",
+	},
 }
 
 func main() {
@@ -52,7 +57,7 @@ func main() {
 }
 
 func server(c *cli.Context) error {
-	conf.Services.Pubsub = sse.NewPubsub()
+	conf.Services.Pubsub = sse.NewPubsub(c.String("redis-url"))
 	conf.Services.Prefix = c.String("server-prefix")
 
 	handler := router.Load(
